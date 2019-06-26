@@ -1,5 +1,6 @@
 "use strict";
 
+const querystring = require('querystring');
 const { getPolyfillString } = require("polyfill-library");
 const headers = require("./src/headers");
 
@@ -24,9 +25,12 @@ const makePolyfill = ({ uaString, cache, features }) => (
 );
 
 const handle = (event, context, callback) => {
-  const uaString = event.Records[0].cf.request.headers["user-agent"][0].value;
+  const request = event.Records[0].cf.request;
+  const uaString = request.headers["user-agent"][0].value;
+  const params = querystring.parse(request.querystring);
+  const features = params.features || {};
 
-  makePolyfill({ uaString, cache: true, features : {} })
+  makePolyfill({ uaString, cache: true, features })
     .then(response => callback(null, response))
     .catch(callback)
 };
